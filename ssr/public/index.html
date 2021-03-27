@@ -12,7 +12,9 @@
 <body>
     <div id="root"></div>
     <script type="module">
+        // import App
         import App from "http://localhost:50505/app";
+        // hydrate markup
         ReactDOM.hydrate(
             React.createElement(App),
             document.getElementById('root')

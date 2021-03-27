@@ -26,6 +26,7 @@ import UglifyJS from "uglify-js";
 
     /*========== bundle App.js (req from frontend) ==========*/
     const COMPONENT_PATH = path.join(path.resolve(),'public/components');
+    // get all components' name
     const getFileName_recursive = (dirname) => {
         let fileNameArr = [];
         const direntArr = fs.readdirSync(dirname,'utf-8')
@@ -39,6 +40,7 @@ import UglifyJS from "uglify-js";
         return fileNameArr;
     };
     const fileNameArr = getFileName_recursive(COMPONENT_PATH)
+    // import components(class), stringify and merge into single string
     var componentClassString = App.toString();
     const importClasses = (fileNameArr) => new Promise((resolve,rejects)=>{
         for(let i=0; i<fileNameArr.length; i++){
@@ -53,8 +55,8 @@ import UglifyJS from "uglify-js";
             })
         }
     })
-    
     importClasses(fileNameArr)
+    // compress javascript
     .then((result)=>{
         componentClassString = UglifyJS.minify(result+'\nexport default App').code;
     })
@@ -68,7 +70,7 @@ import UglifyJS from "uglify-js";
 
     
 
-    /*========== EXPRESS PATHS ==========*/
+    /*========== INITIAL PATHS ==========*/
 
     // send initial redirect
     express.get('/',(req,res)=>{
@@ -86,6 +88,10 @@ import UglifyJS from "uglify-js";
         res.send(componentClassString);
     });
 
+
+
+    /*========== API ==========*/
+    // article
     express.get('/article',(req,res)=>{
         if(req.query.featured==='true'){
             res.setHeader('Content-Type','application/json')
