@@ -3,7 +3,7 @@ import path from "path"
 // bundle index.html
 import ReactDOMServer from "react-dom/server.js";
 import React from "react";
-import App from "./public/AppSSR.js"
+import App from "./public/App.js"
 // express
 import Express from "express";
 import UglifyJS from "uglify-js";
