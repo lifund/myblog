@@ -1,0 +1,23 @@
+
+// import crypto from 'crypto';
+// express.get('/websocket',(req,res)=>{
+// 
+//     console.log(req.headers)
+//     if(req.headers['sec-websocket-key']){
+//         const shasum = crypto.createHash('sha1');
+//         const SWK = req.headers['sec-websocket-key'];
+//         shasum.update(SWK+'258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
+//         const SWA = shasum.digest('base64');
+//         res.status(101);
+//         res.setHeader('Host','localhost:50505');
+//         res.setHeader('Upgrade','websocket');
+//         res.setHeader('Connection','Upgrade');
+//         res.setHeader('Sec-WebSocket-Accept',SWA);
+//         res.send();
+//         // var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+//     }
+//     else{
+//         console.log('pinged');
+//         res.send('pong');
+//     }
+// });

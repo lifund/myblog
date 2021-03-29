@@ -1,5 +1,4 @@
 import React from "react";
-import ArticleFeatured_card from "./ArticleFeatured_card.js"
 
 class ArticleFeatured extends React.Component {
     constructor(props){
@@ -46,9 +45,9 @@ class ArticleFeatured extends React.Component {
                     {className: 'ArticleFeatured'},
                     this.state.card_contents.map((content,mapIndex)=>{
                         return React.createElement(
-                            ArticleFeatured_card,
-                            {key:mapIndex, content:content},
-                            []
+                            'p',
+                            {key:mapIndex},
+                            content.date
                         )                    
                     })
                 )

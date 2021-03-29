@@ -1,0 +1,14 @@
+{
+    "apps": [
+        {
+            "name": "blogssr",
+            "script": "index.js",
+            "watch": ["index.js"],
+            
+            "ignore_watch" : ["node_modules", "public", "package.json", "package-lock.json"],
+            "watch_options": {
+            "followSymlinks": false
+            }
+        }
+    ]
+}
