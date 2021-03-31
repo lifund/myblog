@@ -1,89 +1,78 @@
+// NEW THINGS
+// - nodejs module cache busting (https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/)
+// - react error boundary as component (https://reactjs.org/docs/error-boundaries.html)
+// - typescript syntax (https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
+// - websocket protocol (https://datatracker.ietf.org/doc/html/rfc6455#section-5.1) (https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#exchanging_data_frames)
+
 // DEPENDENCY VERSIONS
 // - node@14.16.0 (fs,path,es6 import)
 // - npm@6.14.11
 // - react@17.0.2 
 // - react-dom@17.0.2
 // - express@4.17.1 
-// - uglify-js@3.13.2
+// - uglify-js@3.13.2 
+// - ws@7.4.4 (https://github.com/websockets/ws)
+// - chokidar@3.5.1 (https://www.npmjs.com/package/chokidar)
+
+// DEPENDENCIES
 // node
-import fspackage from "fs"
+import fspackage from "fs";
 const fs = fspackage.promises;
-import path from "path"
+import path from "path";
 // react
-import ReactDOMServer from "react-dom/server.js";
+import {renderToString} from "react-dom/server.js";
 import React from "react";
-// express
+// express & webSocket
 import Express from "express";
-import UglifyJS from "uglify-js";
-// CONSTANTS
-const COMPONENT_PATH = path.join(path.resolve(),'public/components');
+import WebSocket from 'ws';
 // helpers
-import getDirName_recursive from "./helper/dist/getDirName_recursive.js"
-import getFileName_recursive from "./helper/dist/getFileName_recursive.js"
-import addSuffixToFileName from "./helper/dist/addSuffixToFileName.js"
+import UglifyJS from "uglify-js";
+import chokidar from "chokidar";
+// custom helpers
+import getFileName_recursive from "./helper/dist/getFileName_recursive.js";
+// CONSTANTS
+const COMPONENT_PATH = path.join(path.resolve(),'src/components');
+const INDEXHTML_PATH = path.join(path.resolve(),'src/index.html');
+const PORT_EXPRESS = 50505;
+const PORT_WEBSOCKET = 50506;
 
 
+/*========== bundle components/*(compress) and dehydrated index.html ==========*/
+// declare global indexHTML & classString
+var indexHTML;
+var classString;
 
-/*========== bundle index.js ==========*/
-const bundleIndexJS = async () =>{
-
-}
-const bundleSSR = async () => {
-    let componentClassStringBundle = '';
-    let dehydratedString = '';
-    const componentPathArr = getFileName_recursive(COMPONENT_PATH,'.js');
-    // get index.html
-    fs.readFile(path.join(path.resolve(),'public/index.html'),'utf-8',(err,indexHTML)=>{
-        for(let i=0; i<componentPathArr.length; i++){
-            // make symlink of a Component file
-            fs.symlink(componentPathArr[i],addSuffixToFileName(componentPathArr[i],'_symlink'),(err)=>{
-                // import defult module from a Component file's symlink
-                import(addSuffixToFileName(componentPathArr[i],'_symlink'))
-                .then((file)=>{
-                    // destroy symlink
-                    fs.unlink(addSuffixToFileName(componentPathArr[i],'_symlink'),(err)=>{
-                        // with App.js, make index.html
-                        if(path.basename(componentPathArr[i])==='App.js'){
-                            const renderedApp = ReactDOMServer.renderToString(React.createElement(file.default))
-                            dehydratedString = indexHTML.replace('<div id="root"></div>',`<div id="root">${renderedApp}</div>`)
-                        }
-                        // with <any>.js, stringify class and concat
-                        if(file.default){
-                            componentClassStringBundle += file.default.toString() + '\n';
-                        } 
-                        // once all files bundled, resolve promise
-                        if(i==componentPathArr.length-1) {
-                            resolve({
-                                dehydratedString: dehydratedString,
-                                // compress js
-                                componentClassStringBundle: UglifyJS.minify(componentClassStringBundle+'\nexport default App').code
-                            })
-                        }   
-                    });
-                })
-            })
+const bundleComponents = async (componentRoot) =>{
+    // initiate indexHTML & classString
+    indexHTML = '';
+    classString = '';
+    const fileNameArr = await getFileName_recursive(componentRoot,'.js');
+    for await (const fileName of fileNameArr) {
+        // if app.js, get indexhtml
+        if(path.basename(fileName)==='App.js'){
+            indexHTML = await fs.readFile(INDEXHTML_PATH,'utf-8')
         }
-    });
+        // !! memory will leak !!
+        const cacheBustingModulePath = `${fileName}?update=${Date.now()}`
+        await import(cacheBustingModulePath)
+        .then((fileContents)=>{
+            classString+=fileContents.default.toString()+'\n';
+            if(path.basename(fileName)==='App.js'){
+                const appString = renderToString(React.createElement(fileContents.default));
+                indexHTML=indexHTML.replace('<div id="root"></div>',`<div id="root">${appString}</div>`)
+            }
+        })
+    }
+    classString = UglifyJS.minify(classString+'export default App').code
+    return
 }
-/*========== bundle components/* ==========*/
-const bundleComponents = async () =>{
-
-}
-// ready indexHTML & classString
-var indexHTML = '';
-var classString = '';
-// bundleSSR().then((result)=>{
-//     indexHTML = result.dehydratedString;
-//     classString = result.componentClassStringBundle;
-// })
+await bundleComponents(COMPONENT_PATH);
 
 
 
 /*========== EXPRESS SETTINGS ==========*/
 const express = Express();
-const PORT = 50505;
 express.use('/public',Express.static(path.join(path.resolve(),'public')))
-
 
 /*========== EXPRESS PATHS ==========*/
 // send initial redirect
@@ -105,7 +94,7 @@ express.get('/app',async (req,res)=>{
     res.send(classString+websocketClientScript);
 });
 
-express.listen(PORT,()=>{console.log('[myblog:ssr] listening local',PORT);})
+express.listen(PORT_EXPRESS,()=>{console.log('[myblog:ssr]',PORT_EXPRESS);})
 
 
 
@@ -140,12 +129,13 @@ express.get('/article',(req,res)=>{
 
 
 
+    // [dev env]  
 
 /*========== hot reload ==========*/
 // client websocket script
 const websocketClientScript = `
 let pingpong;
-let webSocket = new WebSocket('ws://localhost:50506')
+let webSocket = new WebSocket('ws://localhost:${PORT_WEBSOCKET}')
 webSocket.onopen = function() {
     console.log("websocket open")
     pingpong = setInterval(() => {
@@ -170,26 +160,38 @@ webSocket.onerror = function (evt) {
     clearInterval(pingpong);
 };
 `
-// server websocket
-import WebSocket from 'ws';
-const wss = new WebSocket.Server({port:50506});
-wss.on('connection', (ws)=>{
+// websocket server
+const wss = new WebSocket.Server({port:PORT_WEBSOCKET});
+wss.on('connection', async (ws)=>{
     // ping pong
     ws.on('message',(message)=>{
         if(message==='ping'){
             ws.send('pong');
         }
-    });
-    // get directories
-    const dirNameArr = getDirName_recursive(COMPONENT_PATH);
-    var watcherArr = [];
-    dirNameArr.forEach((dirName)=>{
-        watcherArr.push(fs.watch(dirName));
-    });
-    // emit webSocket message on watcher event
-    watcherArr.forEach((watcher)=>{
-        watcher.on('change', async (ev)=>{
-            console.log(ev);
-        });
+        if(message==='reload'){
+            wss.clients.forEach((client)=>{
+                client.send('reload');
+            })
+        }
     });
 }); 
+
+// make directory watcher (on components/*)
+const watcher = chokidar.watch(COMPONENT_PATH,{
+    atomic: true
+});
+
+// websocket client : sends reload message on watch events
+const ws = new WebSocket('http://localhost:50506')
+watcher.on('change', async (ev)=>{
+    // !! memory leaking !!
+    await bundleComponents(COMPONENT_PATH);
+    // memory check & reload script process itself on threshold (25mb)
+    const used = process.memoryUsage().heapUsed / 1024 / 1024;
+    console.log(`memory usage : ${Math.round(used * 100) / 100} MB`);
+    if(used>25) process.exit();
+    ws.send('reload');
+})
+
+
+    // [dev env]  
