@@ -47,7 +47,7 @@ class ArticleFeatured extends React.Component {
                         return React.createElement(
                             'p',
                             {key:mapIndex},
-                            content.date
+                            'date: '+content.date
                         )                    
                     })
                 )

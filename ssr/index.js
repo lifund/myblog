@@ -19,54 +19,37 @@
 import fspackage from "fs";
 const fs = fspackage.promises;
 import path from "path";
-// react
-import {renderToString} from "react-dom/server.js";
-import React from "react";
 // express & webSocket
 import Express from "express";
 import WebSocket from 'ws';
 // helpers
-import UglifyJS from "uglify-js";
 import chokidar from "chokidar";
-// custom helpers
-import getFileName_recursive from "./helper/dist/getFileName_recursive.js";
+import { exec } from 'child_process';
+import util from 'util';
+const execPromise = util.promisify(exec)
 // CONSTANTS
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
-const INDEXHTML_PATH = path.join(path.resolve(),'src/index.html');
 const PORT_EXPRESS = 50505;
 const PORT_WEBSOCKET = 50506;
-
+// require stack
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 
 /*========== bundle components/*(compress) and dehydrated index.html ==========*/
 // declare global indexHTML & classString
 var indexHTML;
 var classString;
-
-const bundleComponents = async (componentRoot) =>{
-    // initiate indexHTML & classString
+var appClass;
+const bundleComponents = async () =>{
+    // initiate indexHTML & classString 
     indexHTML = '';
     classString = '';
-    const fileNameArr = await getFileName_recursive(componentRoot,'.js');
-    for await (const fileName of fileNameArr) {
-        // if app.js, get indexhtml
-        if(path.basename(fileName)==='App.js'){
-            indexHTML = await fs.readFile(INDEXHTML_PATH,'utf-8')
-        }
-        // !! memory will leak !!
-        const cacheBustingModulePath = `${fileName}?update=${Date.now()}`
-        await import(cacheBustingModulePath)
-        .then((fileContents)=>{
-            classString+=fileContents.default.toString()+'\n';
-            if(path.basename(fileName)==='App.js'){
-                const appString = renderToString(React.createElement(fileContents.default));
-                indexHTML=indexHTML.replace('<div id="root"></div>',`<div id="root">${appString}</div>`)
-            }
-        })
-    }
-    classString = UglifyJS.minify(classString+'export default App').code
-    return
+    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')}`)
+    const result = JSON.parse(stdout.toString());
+    indexHTML = result.indexHTML
+    classString = result.classString
 }
-await bundleComponents(COMPONENT_PATH);
+await bundleComponents();
 
 
 
@@ -93,7 +76,6 @@ express.get('/app',async (req,res)=>{
     res.setHeader('Content-Type','application/javascript');
     res.send(classString+websocketClientScript);
 });
-
 express.listen(PORT_EXPRESS,()=>{console.log('[myblog:ssr]',PORT_EXPRESS);})
 
 
@@ -143,11 +125,11 @@ webSocket.onopen = function() {
     }, 1000);
 }
 webSocket.onclose = function (evt) {
-    console.log("websocket close, reloading in 1sec...");
+    console.log("websocket reconnection in 1sec...");
     clearInterval(pingpong);
     setTimeout(function(){
         window.location.href = window.location.href
-    },1000)
+    },500)
 };
 webSocket.onmessage = function (evt) {
     if(evt.data=='reload'){
@@ -184,12 +166,14 @@ const watcher = chokidar.watch(COMPONENT_PATH,{
 // websocket client : sends reload message on watch events
 const ws = new WebSocket('http://localhost:50506')
 watcher.on('change', async (ev)=>{
-    // !! memory leaking !!
+    // process.exit();
+    // re-render components !! memory leaking !!
     await bundleComponents(COMPONENT_PATH);
     // memory check & reload script process itself on threshold (25mb)
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     console.log(`memory usage : ${Math.round(used * 100) / 100} MB`);
     if(used>25) process.exit();
+    // reload signal
     ws.send('reload');
 })
 
