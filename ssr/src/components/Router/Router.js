@@ -3,7 +3,9 @@ import React from "react";
 class Router extends React.Component {
     constructor(props){
         super(props);
-        this.state = { }
+        this.state = { 
+            activeRoute: '/techblog'
+        }
     }
     render(){
         React.createElement(

@@ -14,6 +14,24 @@
 // - ws@7.4.4 (https://github.com/websockets/ws)
 // - chokidar@3.5.1 (https://www.npmjs.com/package/chokidar)
 
+import { networkInterfaces } from 'os'
+
+const nets = networkInterfaces();
+const results = Object.create(null); // Or just '{}', an empty object
+
+for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+        // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+        if (net.family === 'IPv4' && !net.internal) {
+            if (!results[name]) {
+                results[name] = [];
+            }
+            results[name].push(net.address);
+        }
+    }
+}
+console.log(results);
+
 // DEPENDENCIES
 // node
 import fspackage from "fs";
@@ -31,6 +49,7 @@ const execPromise = util.promisify(exec)
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
 const PORT_EXPRESS = 50505;
 const PORT_WEBSOCKET = 50506;
+const IP_LOCAL = '192.168.0.12';
 // require stack
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
@@ -117,7 +136,7 @@ express.get('/article',(req,res)=>{
 // client websocket script
 const websocketClientScript = `
 let pingpong;
-let webSocket = new WebSocket('ws://localhost:${PORT_WEBSOCKET}')
+let webSocket = new WebSocket('ws://${IP_LOCAL}:${PORT_WEBSOCKET}')
 webSocket.onopen = function() {
     console.log("websocket open")
     pingpong = setInterval(() => {
@@ -143,9 +162,12 @@ webSocket.onerror = function (evt) {
 };
 `
 // websocket server
+let wssClient = [];
 const wss = new WebSocket.Server({port:PORT_WEBSOCKET});
 wss.on('connection', async (ws)=>{
     // ping pong
+    wssClient.push(ws);
+    console.log('conn');
     ws.on('message',(message)=>{
         if(message==='ping'){
             ws.send('pong');
