@@ -47,12 +47,15 @@ import util from 'util';
 const execPromise = util.promisify(exec)
 // CONSTANTS
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
+const WATCH_PATH = path.join(path.resolve(),'src');
 const PORT_EXPRESS = 50505;
 const PORT_WEBSOCKET = 50506;
 const IP_LOCAL = '192.168.0.12';
 // require stack
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
+
+
 
 /*========== bundle components/*(compress) and dehydrated index.html ==========*/
 // declare global indexHTML & classString
@@ -63,10 +66,12 @@ const bundleComponents = async () =>{
     // initiate indexHTML & classString 
     indexHTML = '';
     classString = '';
-    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')}`)
-    const result = JSON.parse(stdout.toString());
-    indexHTML = result.indexHTML
-    classString = result.classString
+    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')}`,{encoding:'utf8',shell:'/bin/zsh'})
+    // console.log(stdout);
+    console.error(stderr);
+    const result = stdout.toString().split('_SEPARATOR_');
+    indexHTML = result[0]
+    classString = result[1]
 }
 await bundleComponents();
 
@@ -88,6 +93,15 @@ express.get('/',(req,res)=>{
 });
 // send dehydrated index.js
 express.get('/techblog',async (req,res)=>{
+    res.send(indexHTML)
+});
+express.get('/about',async (req,res)=>{
+    res.send(indexHTML)
+});
+express.get('/portfolio',async (req,res)=>{
+    res.send(indexHTML)
+});
+express.get('/shop',async (req,res)=>{
     res.send(indexHTML)
 });
 // send bundled App.js
@@ -181,7 +195,7 @@ wss.on('connection', async (ws)=>{
 }); 
 
 // make directory watcher (on components/*)
-const watcher = chokidar.watch(COMPONENT_PATH,{
+const watcher = chokidar.watch(WATCH_PATH,{
     atomic: true
 });
 

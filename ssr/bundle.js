@@ -9,31 +9,37 @@ import getFileName_recursive from "./helper/dist/getFileName_recursive.js";
 import UglifyJS from "uglify-js";
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
 const INDEXHTML_PATH = path.join(path.resolve(),'src/index.html');
+const INDEXCSS_PATH = path.join(path.resolve(),'src/index.css');
 const ENTRYFILE_NAME = 'App.js'
 
 const bundle = async () =>{
+
     // initiate indexHTML & classString
     let indexHTML = '';
+    let indexCSS = '';
     let classString = '';
     let appClass = null;
+    
     // get file paths
     const fileNameArr = await getFileName_recursive(COMPONENT_PATH,'.js');
+    
     // loop over file paths
     for await (const fileName of fileNameArr) {
+    
         // if app.js, get index.html
         if(path.basename(fileName)===ENTRYFILE_NAME){
-            indexHTML = await fs.readFile(INDEXHTML_PATH,'utf-8')
+            indexHTML = await fs.readFile(INDEXHTML_PATH,'utf-8');
+            indexCSS = await fs.readFile(INDEXCSS_PATH,'utf-8');
         }
-        // !! memory will leak !!
-        const cacheBustingModulePath = `${fileName}?update=${Date.now()}`
-        await import(cacheBustingModulePath)
+        await import(fileName)
         .then((fileContents)=>{
-            // bundle Component Classes
+            // class-string
             classString+=fileContents.default.toString()+'\n';
-            // render index.html
+            // if app.js, bundle index.html with rendered dehydrated-string
             if(path.basename(fileName)===ENTRYFILE_NAME){
                 appClass = fileContents.default
-                indexHTML=indexHTML.replace(
+                indexHTML=indexHTML
+                .replace(
                     '<div id="root"></div>',
                     `<div id="root">${      
                         ReactDOMServer.renderToString(
@@ -41,12 +47,20 @@ const bundle = async () =>{
                         )    
                     }</div>`
                 )
+                .replace(
+                    '<!--STYLESHEET-->',
+                    `<style>
+                    ${indexCSS}
+                    </style>`
+                )
             }    
         })
     }
+    // minify class-string
     classString = UglifyJS.minify(classString+'export default App').code
-
-    console.log(JSON.stringify({indexHTML:indexHTML,classString:classString}))
-    return
+    // stdout
+    const result = indexHTML+'_SEPARATOR_'+classString;
+    console.log(result);
+    return 
 }
 bundle();
