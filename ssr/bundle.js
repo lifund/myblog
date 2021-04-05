@@ -2,15 +2,24 @@
 import fspackage from "fs";
 const fs = fspackage.promises;
 import path from "path";
-
+// react
 import ReactDOMServer from "react-dom/server.js";
 import React from "react";
+// helpers
 import getFileName_recursive from "./helper/dist/getFileName_recursive.js";
 import UglifyJS from "uglify-js";
+import getLocalAddress from "./helper/dist/getLocalAddress.js";
+// constants
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
 const INDEXHTML_PATH = path.join(path.resolve(),'src/index.html');
 const INDEXCSS_PATH = path.join(path.resolve(),'src/index.css');
 const ENTRYFILE_NAME = 'App.js'
+const LOCAL_ADDRESS = process.argv[2];
+const LOCAL_PORT = process.argv[3];
+const SEARCH_PORT = '8080';
+if(!LOCAL_ADDRESS){
+    throw new Error('LOCAL_ADDRESS is not defined')
+}
 
 const bundle = async () =>{
 
@@ -34,7 +43,10 @@ const bundle = async () =>{
         await import(fileName)
         .then((fileContents)=>{
             // class-string
-            classString+=fileContents.default.toString()+'\n';
+            classString+=fileContents.default.toString()
+            .replace('$LOCAL_ADDRESS$',LOCAL_ADDRESS)
+            .replace('$SEARCH_PORT$',SEARCH_PORT)
+            .replace('$LOCAL_PORT$',LOCAL_PORT)+'\n';
             // if app.js, bundle index.html with rendered dehydrated-string
             if(path.basename(fileName)===ENTRYFILE_NAME){
                 appClass = fileContents.default
@@ -53,7 +65,15 @@ const bundle = async () =>{
                     ${indexCSS}
                     </style>`
                 )
-            }    
+                .replace(
+                    '$LOCAL_ADDRESS$',
+                    LOCAL_ADDRESS
+                )
+                .replace(
+                    '$LOCAL_PORT$',
+                    LOCAL_PORT
+                )
+            }
         })
     }
     // minify class-string
@@ -63,4 +83,4 @@ const bundle = async () =>{
     console.log(result);
     return 
 }
-bundle();
+bundle(); 

@@ -7,7 +7,7 @@ class LeftPanelSocial extends React.Component {
     }
     render(){
         return React.createElement(
-            'div',
+            'li',
             {className:'LeftPanelSocial'},
             [
                 React.createElement(

@@ -1,6 +1,6 @@
 import React from "react";
 
-class ArticleFeatured extends React.Component {
+class ContainerFeatured extends React.Component {
     constructor(props){
         super(props);
         this.state = { 
@@ -10,7 +10,7 @@ class ArticleFeatured extends React.Component {
         }
     }
     componentDidMount(){
-        fetch('/article?featured=true')
+        fetch('/articleAPI?featured=true')
         .then(
             (res)=>{
                 return res.json()
@@ -42,18 +42,25 @@ class ArticleFeatured extends React.Component {
             return (
                 React.createElement(
                     'div',
-                    {className: 'ArticleFeatured'},
-                    this.state.card_contents.map((content,mapIndex)=>{
-                        return React.createElement(
-                            'p',
-                            {key:mapIndex},
-                            'date: '+content.date
-                        )                    
-                    })
+                    {className: 'ContainerFeatured'},
+                    [
+                        React.createElement(
+                            'h2',
+                            {key:'ContainerFeatured_title'},
+                            this.props.title
+                        ),
+                        this.state.card_contents.map((content,mapIndex)=>{
+                            return React.createElement(
+                                'p',
+                                {key:mapIndex},
+                                'date: '+content.date
+                            )                    
+                        })
+                    ]
                 )
             );
         }
     }
 }
 
-export default ArticleFeatured
+export default ContainerFeatured

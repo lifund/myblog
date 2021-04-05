@@ -7,11 +7,13 @@ class Router extends React.Component {
     }
     render(){
         return this.props.children.filter((el)=>{
-            if(
-                el.props.route===this.props.activeRoute
-                || el.type!==Route
-            ) return el;
-        })
+            if(el.props.route===this.props.activeRoute){
+                return el
+            }
+            if(el.type!==Route){
+                return el
+            }
+        });
     }
 }
 

@@ -1,7 +1,6 @@
 import React from "react";
-import ArticleFeatured from "./ArticleFeatured.js"
 
-class Article extends React.Component {
+class Card extends React.Component {
     constructor(props){
         super(props)
         this.state={}
@@ -9,15 +8,16 @@ class Article extends React.Component {
     render(){
         return React.createElement(
             'div',
-            {className:'Article'},
+            {className:'TechBlog'},
             [
                 React.createElement(
-                    ArticleFeatured,
-                    {key:1}
+                    'div',
+                    {},
+                    'CARD'
                 )
             ]
         )
     }
 }
 
-export default Article
+export default Card

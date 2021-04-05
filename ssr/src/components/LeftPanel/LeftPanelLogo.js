@@ -8,7 +8,9 @@ class LeftPanelLogo extends React.Component {
     render(){
         return React.createElement(
             'picture',
-            {},
+            {
+            className:'LeftPanelLogo',
+            },
             [
                 React.createElement(
                     'source',

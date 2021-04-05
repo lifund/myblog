@@ -14,23 +14,6 @@
 // - ws@7.4.4 (https://github.com/websockets/ws)
 // - chokidar@3.5.1 (https://www.npmjs.com/package/chokidar)
 
-import { networkInterfaces } from 'os'
-
-const nets = networkInterfaces();
-const results = Object.create(null); // Or just '{}', an empty object
-
-for (const name of Object.keys(nets)) {
-    for (const net of nets[name]) {
-        // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
-        if (net.family === 'IPv4' && !net.internal) {
-            if (!results[name]) {
-                results[name] = [];
-            }
-            results[name].push(net.address);
-        }
-    }
-}
-console.log(results);
 
 // DEPENDENCIES
 // node
@@ -45,12 +28,13 @@ import chokidar from "chokidar";
 import { exec } from 'child_process';
 import util from 'util';
 const execPromise = util.promisify(exec)
+import getLocalAddress from "./helper/dist/getLocalAddress.js";
 // CONSTANTS
 const COMPONENT_PATH = path.join(path.resolve(),'src/components');
 const WATCH_PATH = path.join(path.resolve(),'src');
 const PORT_EXPRESS = 50505;
 const PORT_WEBSOCKET = 50506;
-const IP_LOCAL = '192.168.0.12';
+const LOCAL_ADDRESS = getLocalAddress()[0];
 // require stack
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
@@ -66,12 +50,12 @@ const bundleComponents = async () =>{
     // initiate indexHTML & classString 
     indexHTML = '';
     classString = '';
-    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')}`,{encoding:'utf8',shell:'/bin/zsh'})
+    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')} ${LOCAL_ADDRESS} ${PORT_EXPRESS}`,{encoding:'utf8',shell:'/bin/zsh'})
     // console.log(stdout);
     console.error(stderr);
     const result = stdout.toString().split('_SEPARATOR_');
-    indexHTML = result[0]
-    classString = result[1]
+    indexHTML = result[0];
+    classString = result[1];
 }
 await bundleComponents();
 
@@ -79,7 +63,7 @@ await bundleComponents();
 
 /*========== EXPRESS SETTINGS ==========*/
 const express = Express();
-express.use('/public',Express.static(path.join(path.resolve(),'public')))
+express.use('/public',Express.static(path.join(path.resolve(),'public')));
 
 /*========== EXPRESS PATHS ==========*/
 // send initial redirect
@@ -104,6 +88,9 @@ express.get('/portfolio',async (req,res)=>{
 express.get('/shop',async (req,res)=>{
     res.send(indexHTML)
 });
+express.get('/search',async (req,res)=>{
+    res.send(indexHTML)
+});
 // send bundled App.js
 express.get('/app',async (req,res)=>{
     res.setHeader('Content-Type','application/javascript');
@@ -116,41 +103,97 @@ express.listen(PORT_EXPRESS,()=>{console.log('[myblog:ssr]',PORT_EXPRESS);})
 
 /*========== API ==========*/
 // article
-express.get('/article',(req,res)=>{
-    if(req.query.featured==='true'){
-        res.setHeader('Content-Type','application/json')
-        res.send({
-            card_data : [
-                {
-                    title: 't1',
-                    date: 'd1',
-                    tags: ['t1a','t1b']
-                },
-                {
-                    title: 't2',
-                    date: 'd2',
-                    tags: ['t2a','t2b']
-                }
-            ]
-        })
-    }
-    else{
-        res.status(404)
-        res.send('Page Not Found')
-    }
+express.get('/articleAPI',(req,res)=>{
+    res.setHeader('Content-Type','application/json')
+    res.send(JSON.stringify(
+    {
+        card_data : [
+            {
+                title: 't1',
+                date: 'd1',
+                tags: ['t1a','t1b']
+            },
+            {
+                title: 't2',
+                date: 'd2',
+                tags: ['t2a','t2b']
+            },
+            {
+                title: 't3',
+                date: 'd3',
+                tags: ['t3a','t3b']
+            },
+            {
+                title: 't4',
+                date: 'd4',
+                tags: ['t4a','t4b']
+            },
+            {
+                title: 't5',
+                date: 'd5',
+                tags: ['t5a','t5b']
+            },
+            {
+                title: 't6',
+                date: 'd6',
+                tags: ['t6a','t6b']
+            }
+        ]
+    }))
+})
+express.get('/searchAPI',(req,res)=>{
+    // query: String 검색어 (20자이하)
+    // tags: Array<String> 태그 
+    // 
+    console.log(req.query.keyword);
+    res.setHeader('Content-Type','application/json')
+    res.send(JSON.stringify(
+    {
+        card_data : [
+            {
+                title: 't1',
+                date: 'd1',
+                tags: ['t1a','t1b']
+            },
+            {
+                title: 't2',
+                date: 'd2',
+                tags: ['t2a','t2b']
+            },
+            {
+                title: 't3',
+                date: 'd3',
+                tags: ['t3a','t3b']
+            },
+            {
+                title: 't4',
+                date: 'd4',
+                tags: ['t4a','t4b']
+            },
+            {
+                title: 't5',
+                date: 'd5',
+                tags: ['t5a','t5b']
+            },
+            {
+                title: 't6',
+                date: 'd6',
+                tags: ['t6a','t6b']
+            }
+        ]
+    }))
 });
 
 
 
 
 
-    // [dev env]  
 
 /*========== hot reload ==========*/
 // client websocket script
 const websocketClientScript = `
 let pingpong;
-let webSocket = new WebSocket('ws://${IP_LOCAL}:${PORT_WEBSOCKET}')
+let webSocket = new WebSocket('ws://${LOCAL_ADDRESS}:${PORT_WEBSOCKET}')
 webSocket.onopen = function() {
     console.log("websocket open")
     pingpong = setInterval(() => {
@@ -160,9 +203,9 @@ webSocket.onopen = function() {
 webSocket.onclose = function (evt) {
     console.log("websocket reconnection in 1sec...");
     clearInterval(pingpong);
-    setTimeout(function(){
+    setInterval(function(){
         window.location.href = window.location.href
-    },500)
+    },1000)
 };
 webSocket.onmessage = function (evt) {
     if(evt.data=='reload'){
@@ -171,8 +214,11 @@ webSocket.onmessage = function (evt) {
     }
 };
 webSocket.onerror = function (evt) {
-    console.log(evt);
+    console.log("websocket reconnection in 1sec...");
     clearInterval(pingpong);
+    setInterval(function(){
+        window.location.href = window.location.href
+    },1000)
 };
 `
 // websocket server
@@ -200,7 +246,7 @@ const watcher = chokidar.watch(WATCH_PATH,{
 });
 
 // websocket client : sends reload message on watch events
-const ws = new WebSocket('http://localhost:50506')
+const ws = new WebSocket('http://localhost:'+PORT_WEBSOCKET)
 watcher.on('change', async (ev)=>{
     // process.exit();
     // re-render components !! memory leaking !!
@@ -212,6 +258,3 @@ watcher.on('change', async (ev)=>{
     // reload signal
     ws.send('reload');
 })
-
-
-    // [dev env]  
