@@ -1,0 +1,25 @@
+{
+  "name": "pureact",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "config": {
+    "port": "8080"
+  },
+  "scripts": {
+    "dev": "node ./scripts/build.js",
+    "build": "node ./scripts/dev.js",
+    "production": "node ./scripts/production.js"
+  },
+  "keywords": [
+    "react",
+    "pure",
+    "dependencies"
+  ],
+  "author": "Jangwon Suh",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

@@ -1,0 +1,119 @@
+.ArticleCardFeatured {
+    display: block;
+    position: relative;
+
+    margin-top: 20px;
+    padding: 20px;
+
+    background: #292929;
+    border-radius: 16px;
+
+    transition: all .2s ease-in-out;
+    color: #F4F2FF;
+    user-select: none;
+}
+.ArticleCardFeatured:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+    color: white;
+}
+    .ArticleCardFeatured::after{
+        content: '';
+        display: block;
+        width: 10px;
+        height: 42px;
+
+        position: absolute;
+        bottom: 28px;
+        right: 19px;
+
+        background: linear-gradient(90deg,#29292900,#292929);
+    }
+    .ArticleCardFeatured_date{
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    .ArticleCardFeatured_title{
+        width: 100%;
+        margin-bottom: 20px;
+        overflow: hidden;
+        position: relative; 
+        
+        line-height: 1.4em;
+        max-height: 4.2em; 
+
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+    }   
+    .ArticleCardFeatured_tagContainer{
+        overflow-x: scroll;
+        overflow-y: hidden;
+        white-space: nowrap;
+        position: relative;
+        height: 100%;
+    }
+        .ArticleCardFeatured_tagContainer::-webkit-scrollbar {
+            height: 8px;
+        }
+        .ArticleCardFeatured_tagContainer::-webkit-scrollbar-track:hover {
+            background: none;
+        }
+        .ArticleCardFeatured_tagContainer::-webkit-scrollbar-track:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .ArticleCardFeatured_tagContainer::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .ArticleCardFeatured_tagContainer::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+            .ArticleCardFeatured_tag {
+                display: inline-block;
+                margin-right: 8px;
+                margin-bottom: 8px;
+
+                width: fit-content;
+                padding: 2px 10px;
+                border-radius: 100px;
+
+                background: #d1d0da;
+                color: #171917;
+                font-weight: 300;
+            }
+            .ArticleCardFeatured_tag:hover {
+                background: #e5e3ee;
+            }
+
+@media only screen and (max-width:590px){
+    .ArticleCardFeatured {
+        width: calc(100% - 40px);
+    }
+}
+
+@media only screen and (min-width:590px) and (max-width:800px){
+    .ArticleCardFeatured {
+        margin-right: 20px;
+        width: calc(100% - 40px);
+        display: inline-block;
+    }
+        .ArticleCardFeatured_title{
+            height: 4.2em;
+        }
+}
+
+@media only screen and (min-width:800px){
+    .ArticleCardFeatured {
+        margin-right: 20px;
+        width: calc(50% - 50px);
+        display: inline-block;
+    }
+        .ArticleCardFeatured:nth-of-type(2n){
+            margin-right: 0;
+        }
+        .ArticleCardFeatured_title{
+            height: 4.2em;
+        }
+}

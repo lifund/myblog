@@ -8,8 +8,6 @@ class LeftPanelSearch extends React.Component {
         }
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.findKeywordFromURLQuery = this.findKeywordFromURLQuery.bind(this);
-        this.encodeURLQueryParams = this.encodeURLQueryParams.bind(this);
-        this.decodeURLQueryParams = this.decodeURLQueryParams.bind(this);
     }
     // HANDLERS
     handleKeyPress(event){
@@ -19,7 +17,7 @@ class LeftPanelSearch extends React.Component {
                 this.setState({
                     inputValue: event.target.value
                 },()=>{
-                    window.location.href = "http://$LOCAL_ADDRESS$:$LOCAL_PORT$/search?keyword="+encodeURIComponent(this.state.inputValue.trim())
+                    window.location.href = "http://_LOCAL_ADDRESS_:_LOCAL_PORT_/search?keyword="+encodeURIComponent(this.state.inputValue.trim())
                 });
             }
         }else{
@@ -29,23 +27,16 @@ class LeftPanelSearch extends React.Component {
         }
     }
     findKeywordFromURLQuery(queryString) {
-        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-        for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i].split('=');
-            if(decodeURIComponent(pair[0])==='keyword'){
-                return decodeURIComponent(pair[1]);
+        if(queryString!==''){
+            var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i].split('=');
+                if(decodeURIComponent(pair[0])==='keyword'){
+                    return decodeURIComponent(pair[1]);
+                }
             }
         }
         return ''
-    }
-    encodeURLQueryParams(params){
-    }
-    decodeURLQueryParams(){
-    }
-    // THIS COMPONENT STATE CHANGE
-    componentDidMount(){
-    }
-    componentDidUpdate(){
     }
 
     // RENDER
@@ -62,7 +53,7 @@ class LeftPanelSearch extends React.Component {
                         type:'search',
                         placeholder:'Search',
                         onKeyPress:(ev)=>{this.handleKeyPress(ev)},
-                        defaultValue:this.findKeywordFromURLQuery(this.props.activeQuery)
+                        defaultValue:this.findKeywordFromURLQuery(this.props.activeHistory.activeQuery)
                     },
                 ),
                 React.createElement(

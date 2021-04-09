@@ -1,6 +1,7 @@
 import React from "react";
+import ArticleCardFeatured from "./ArticleCardFeatured.js";
 
-class ContainerFeatured extends React.Component {
+class ArticleContainerFeatured extends React.Component {
     constructor(props){
         super(props);
         this.state = { 
@@ -23,7 +24,7 @@ class ContainerFeatured extends React.Component {
                     card_contents: res.card_data
                 });
             },
-            (err)=>{
+            (err)=>{``
                 this.setState({
                     card_isLoaded: true,
                     card_error:  err
@@ -42,18 +43,21 @@ class ContainerFeatured extends React.Component {
             return (
                 React.createElement(
                     'div',
-                    {className: 'ContainerFeatured'},
+                    {className: 'ArticleContainerFeatured'},
                     [
                         React.createElement(
                             'h2',
-                            {key:'ContainerFeatured_title'},
+                            {key:'ArticleContainerFeatured_title',className:'ArticleContainerFeatured_title'},
                             this.props.title
                         ),
                         this.state.card_contents.map((content,mapIndex)=>{
                             return React.createElement(
-                                'p',
-                                {key:mapIndex},
-                                'date: '+content.date
+                                ArticleCardFeatured,
+                                {
+                                key:mapIndex,
+                                content:content,
+                                setActiveHistory:this.props.setActiveHistory
+                                }
                             )                    
                         })
                     ]
@@ -63,4 +67,4 @@ class ContainerFeatured extends React.Component {
     }
 }
 
-export default ContainerFeatured
+export default ArticleContainerFeatured

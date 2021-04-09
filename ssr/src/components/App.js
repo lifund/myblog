@@ -7,34 +7,49 @@ import Router from "./Router/Router.js";
 import Route from "./Router/Route.js";
 
 import LeftPanel from "./LeftPanel/LeftPanel.js";
-
+// Pages
 import Search from "./Search/Search.js";
-import TechBlog from "./ContentsPage/TechBlog.js";
-import About from "./ContentsPage/About.js";
-import Portfolio from "./ContentsPage/Portfolio.js";
-import Shop from "./ContentsPage/Shop.js";
+import TechBlog from "./Pages/TechBlog.js";
+import About from "./Pages/About.js";
+import Portfolio from "./Pages/Portfolio.js";
+import Shop from "./Pages/Shop.js";
 
 class App extends React.Component {
     constructor(props){
         super(props);
         this.state = { 
-            activeRoute: '',
-            activeQuery: ''
+            activeHistory: {
+                activeRoute: '_ACTIVE_PATH_',
+                activeQuery: '_ACTIVE_QUERY_',
+                activeTitle: '_ACTIVE_TITLE_'
+            },
+            ssrProps: this.props.ssrProps
         }
-    }
+        this.setActiveHistory = this.setActiveHistory.bind(this)
 
+    }
     componentDidMount () {
-        this.setState({
-            activeRoute: window.location.pathname,
-            activeQuery: window.location.search
+        window.addEventListener('popstate', (event) => {
+            this.setState({
+                activeHistory:{
+                    activeRoute: document.location.pathname,
+                    activeQuery: document.location.search,
+                    activeTitle: document.title
+                }
+            })
         });
     }
 
-    setActiveRoute = (newRoute) => {
+    // HANDLER
+    setActiveHistory (newRoute,newQuery,newTitle) {
         this.setState({
-            activeRoute: newRoute
+            activeHistory:{
+                activeRoute: newRoute,
+                activeQuery: newQuery,
+                activeTitle: newTitle
+            }
         },()=>{
-            window.history.pushState({},'',newRoute)
+            window.history.pushState({},newTitle,newRoute+newQuery)
         })
     }
 
@@ -47,43 +62,74 @@ class App extends React.Component {
                 null,
                 React.createElement(
                     Router,
-                    {activeRoute:this.state.activeRoute},
+                    {activeRoute:this.state.activeHistory.activeRoute},
                     [
                         React.createElement(
                             LeftPanel,
                             {
                             key:'LeftPanel',
-                            activeRoute:this.state.activeRoute,
-                            activeQuery:this.state.activeQuery,
-                            setActiveRoute:this.setActiveRoute,
+                            setActiveHistory:this.setActiveHistory,
+                            activeHistory:this.state.activeHistory
                             }
                         ),
                         React.createElement(
                             Route,
+                            {key:'/about',route:'/about'},
+                            React.createElement(
+                                About
+                            )
+                        ),
+                        React.createElement(
+                            Route,
                             {key:'/techblog',route:'/techblog'},
-                            React.createElement(TechBlog)
+                            React.createElement(
+                                TechBlog,
+                                {
+                                setActiveHistory:this.setActiveHistory,
+                                activeHistory:this.state.activeHistory
+                                }
+                            )
                         ),
                         React.createElement(
                             Route,
                             {key:'/portfolio',route:'/portfolio'},
-                            React.createElement(Portfolio)
-                        ),
-                        React.createElement(
-                            Route,
-                            {key:'/about',route:'/about'},
-                            React.createElement(About)
+                            React.createElement(
+                                Portfolio,
+                                {
+                                setActiveHistory:this.setActiveHistory,
+                                activeHistory:this.state.activeHistory
+                                }
+                            )
                         ),
                         React.createElement(
                             Route,
                             {key:'/shop',route:'/shop'},
-                            React.createElement(Shop)
+                            React.createElement(
+                                Shop,
+                                {
+                                setActiveHistory:this.setActiveHistory,
+                                activeHistory:this.state.activeHistory
+                                }
+                            )
                         ),
                         React.createElement(
                             Route,
                             {key:'/search',route:'/search'},
                             React.createElement(
                                 Search,
-                                {query:this.state.activeQuery}
+                                {
+                                setActiveHistory:this.setActiveHistory,
+                                activeHistory:this.state.activeHistory
+                                }
+                            )
+                        ),
+                        React.createElement(
+                            Route,
+                            {key:'/article',route:'/article'},
+                            React.createElement(
+                                'div',
+                                {},
+                                'ArticleArticleArticleArticleArticleArticleArticle'
                             )
                         )
                     ]

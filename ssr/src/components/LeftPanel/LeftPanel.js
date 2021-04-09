@@ -9,8 +9,6 @@ class LeftPanel extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            activeRoute: this.props.activeRoute,
-            LeftPanel_ClassName: 'LeftPanel',
             LeftPanel_open: false
         }
         this.handleMenuButtonClick = this.handleMenuButtonClick.bind(this);
@@ -19,7 +17,6 @@ class LeftPanel extends React.Component {
     handleMenuButtonClick(){
         this.setState({
             LeftPanel_open: !this.state.LeftPanel_open,
-            LeftPanel_ClassName: 'LeftPanel LeftPanel_open_'+(!this.state.LeftPanel_open).toString()
         })
     }
 
@@ -29,11 +26,11 @@ class LeftPanel extends React.Component {
             document.body.className="";
         },500);
     }
-
+    
     render(){
         return React.createElement(
             'div',
-            {className: this.state.LeftPanel_ClassName},
+            {className: 'LeftPanel LeftPanel_open_'+(this.state.LeftPanel_open).toString()},
             [
                 React.createElement(
                     'ul',
@@ -80,8 +77,8 @@ class LeftPanel extends React.Component {
                             {
                             key:2,
                             className:'LeftPanelSearch',
-                            setActiveRoute:this.props.setActiveRoute,
-                            activeQuery:this.props.activeQuery
+                            setActiveHistory:this.props.setActiveHistory,
+                            activeHistory:this.props.activeHistory
                             }
                         ),
                         React.createElement(
@@ -89,8 +86,8 @@ class LeftPanel extends React.Component {
                             {
                             key:3,
                             className:'LeftPanelNav',
-                            setActiveRoute:this.props.setActiveRoute,
-                            activeRoute:this.props.activeRoute,
+                            setActiveHistory:this.props.setActiveHistory,
+                            activeHistory:this.props.activeHistory,
                             handleMenuButtonClick:this.handleMenuButtonClick
                             }
                         ),

@@ -1,0 +1,119 @@
+.ArticleCard {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: block;
+    position: relative;
+
+    background: none;
+    border-bottom: 1px solid #3A363A;
+
+    transition: all .2s ease-in-out;
+    color: #F4F2FF;
+    user-select: none;
+}
+.ArticleCard:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+    color: white;
+}
+    .ArticleCard::after{
+        content: '';
+        display: block;
+        width: 10px;
+        height: 50px;
+
+        position: absolute;
+        bottom: 20px;
+        right: -1px;
+
+        background: linear-gradient(90deg,#17191700,#171917);
+    }
+    .ArticleCard_date{
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    .ArticleCard_title{
+        width: 100%;
+        margin-bottom: 10px;
+        overflow: hidden;
+        position: relative; 
+        
+        line-height: 1.4em;
+        max-height: 4.2em; 
+
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+    }   
+    .ArticleCard_tagContainer{
+        overflow-x: scroll;
+        overflow-y: hidden;
+        white-space: nowrap;
+        position: relative;
+        height: 100%;
+    }
+        .ArticleCard_tagContainer::-webkit-scrollbar {
+            height: 8px;
+        }
+        .ArticleCard_tagContainer::-webkit-scrollbar-track:hover {
+            background: none;
+        }
+        .ArticleCard_tagContainer::-webkit-scrollbar-track:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .ArticleCard_tagContainer::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .ArticleCard_tagContainer::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+            .ArticleCard_tag {
+                display: inline-block;
+                margin-right: 8px;
+                margin-bottom: 8px;
+
+                width: fit-content;
+                padding: 2px 10px;
+                border-radius: 100px;
+
+                background: #d1d0da;
+                color: #171917;
+                font-weight: 300;
+            }
+            .ArticleCard_tag:hover {
+                background: #e5e3ee;
+            }
+
+@media only screen and (max-width:590px){
+    .ArticleCard {
+        width: 100%;
+    }
+}
+
+
+@media only screen and (min-width:590px) and (max-width:800px){
+    .ArticleCard {
+        margin-right: 20px;
+        width: 100%;
+        display: inline-block;
+    }
+        .ArticleCard_title{
+            height: 4.2em;
+        }
+}
+
+@media only screen and (min-width:800px){
+    .ArticleCard {
+        margin-right: 40px;
+        width: calc(50% - 20px);
+        display: inline-block;
+    }   
+        .ArticleCard:nth-of-type(2n){
+            margin-right: 0;
+        }
+        .ArticleCard_title{
+            height: 4.2em;
+        }
+}

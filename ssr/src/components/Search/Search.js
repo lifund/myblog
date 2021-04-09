@@ -4,7 +4,10 @@ class Search extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            searchResponse:null
+            searchResponse:null,
+            tagResponse:null,
+            articleResponse:null,
+            portfolioResponse:null
         }
         this.fetchSearchResult = this.fetchSearchResult.bind(this);
         this.findKeywordFromURLQuery = this.findKeywordFromURLQuery.bind(this);
@@ -15,7 +18,7 @@ class Search extends React.Component {
         const requestOptions = {
             method: 'GET',
         };
-        fetch('http://$LOCAL_ADDRESS$:$LOCAL_PORT$/searchAPI'+this.props.query, requestOptions)
+        fetch('http://_LOCAL_ADDRESS_:_LOCAL_PORT_/articleAPI'+this.props.activeHistory.activeQuery, requestOptions)
         .then(async response => {
             const data = await response.json();
             // error response
@@ -30,12 +33,15 @@ class Search extends React.Component {
             console.error('There was an error!', error);
         });
     }
+    
     findKeywordFromURLQuery(queryString) {
-        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-        for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i].split('=');
-            if(decodeURIComponent(pair[0])==='keyword'){
-                return decodeURIComponent(pair[1]);
+        if(queryString!==''){
+            var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i].split('=');
+                if(decodeURIComponent(pair[0])==='keyword'){
+                    return decodeURIComponent(pair[1]);
+                }
             }
         }
         return ''
@@ -58,7 +64,7 @@ class Search extends React.Component {
                     React.createElement(
                         'h1',
                         {key:1},
-                        'Search Results for "'+this.findKeywordFromURLQuery(this.props.query)+'"'
+                        'Search Results for "'+this.findKeywordFromURLQuery(this.props.activeHistory.activeQuery)+'"'
                     ),
                     React.createElement(
                         'div',
@@ -77,7 +83,7 @@ class Search extends React.Component {
                 React.createElement(
                     'h1',
                     {key:1},
-                    'Search Results for "'+this.findKeywordFromURLQuery(this.props.query)+'"'
+                    'Search Results for "'+this.findKeywordFromURLQuery(this.props.activeHistory.activeQuery)+'"'
                 ),
                 React.createElement(
                     'div',

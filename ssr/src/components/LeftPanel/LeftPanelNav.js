@@ -5,9 +5,9 @@ class LeftPanelNav extends React.Component {
         super(props);
         this.handleClick = this.handleClick.bind(this);
     }
-    handleClick(newRoute){
+    handleClick(newRoute,newTitle){
         this.props.handleMenuButtonClick();
-        this.props.setActiveRoute(newRoute);
+        this.props.setActiveHistory(newRoute,'',newTitle);
         document.getElementsByClassName('LeftPanelSearchInput')[0].value='';
     }
 
@@ -16,9 +16,9 @@ class LeftPanelNav extends React.Component {
             'li',
             {className:'LeftPanelNav'},
             [
+                {route:'/about',name:'About'},
                 {route:'/techblog',name:'Tech Blog'},
                 {route:'/portfolio',name:'Portfolio'},
-                {route:'/about',name:'About'},
                 {route:'/shop',name:'Shop'}
             ].map((navButton,mapIndex)=>{
                 // active button
@@ -28,7 +28,7 @@ class LeftPanelNav extends React.Component {
                         {  
                             key:mapIndex,
                             className:'LeftPanelNav_activeButton',
-                            onClick:()=>{this.handleClick(navButton.route);}
+                            onClick:()=>{this.handleClick(navButton.route,navButton.name+'|Jangwon');}
                         },
                         navButton.name
                     )
@@ -37,7 +37,8 @@ class LeftPanelNav extends React.Component {
                         'button',
                         {  
                             key:mapIndex,
-                            onClick:()=>{this.handleClick(navButton.route);}
+                            className:'LeftPanelNav_button',
+                            onClick:()=>{this.handleClick(navButton.route,navButton.name+'|Jangwon');}
                         },
                         navButton.name
                     )

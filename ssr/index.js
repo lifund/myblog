@@ -1,3 +1,48 @@
+const articleCards = [
+    {
+        id:'19kw39d2',
+        featured: true,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM.',
+        date: '2021.03.26',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'sasjhdfi',
+        featured: true,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM. Building simp asdf',
+        date: '2021.03.26',
+        tags: ['t2aasdf','t2bs','t2bs']
+    },
+    {
+        id:'20dj39di',
+        featured: false,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM.',
+        date: '2021.03.26',
+        tags: ['tsdf3a','t3basdfe']
+    },
+    {
+        id:'10djc83j',
+        featured: false,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM.',
+        date: '2021.03.26',
+        tags: ['tasdf4a','t4web']
+    },
+    {
+        id:'30sl39dd',
+        featured: false,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM. Building simple markdown editor with vanilla js utilizing shadow DOM.',
+        date: '2021.03.26',
+        tags: ['t5as','t5feab']
+    },
+    {
+        id:'30sl38cj',
+        featured: false,
+        title: 'Building simple markdown editor with vanilla js utilizing shadow DOM.',
+        date: '2021.03.26',
+        tags: ['t6asdfa','tasdf6b']
+    }
+]
+
 // NEW THINGS
 // - nodejs module cache busting (https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/)
 // - react error boundary as component (https://reactjs.org/docs/error-boundaries.html)
@@ -21,23 +66,19 @@ import fspackage from "fs";
 const fs = fspackage.promises;
 import path from "path";
 // express & webSocket
-import Express from "express";
+import Express, { json } from "express";
 import WebSocket from 'ws';
 // helpers
 import chokidar from "chokidar";
-import { exec } from 'child_process';
+import { fork } from 'child_process';
 import util from 'util';
-const execPromise = util.promisify(exec)
 import getLocalAddress from "./helper/dist/getLocalAddress.js";
 // CONSTANTS
-const COMPONENT_PATH = path.join(path.resolve(),'src/components');
 const WATCH_PATH = path.join(path.resolve(),'src');
 const PORT_EXPRESS = 50505;
 const PORT_WEBSOCKET = 50506;
 const LOCAL_ADDRESS = getLocalAddress()[0];
-// require stack
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
+
 
 
 
@@ -45,20 +86,32 @@ const require = createRequire(import.meta.url)
 // declare global indexHTML & classString
 var indexHTML;
 var classString;
-var appClass;
-const bundleComponents = async () =>{
+const bundleComponents = async (ACTIVE_PATH='',ACTIVE_QUERY='',ACTIVE_TITLE='',STATE_REPLACEMENTS={}) =>{
+    console.log(ACTIVE_PATH,ACTIVE_QUERY,ACTIVE_TITLE);
     // initiate indexHTML & classString 
+    let resultString = '';
     indexHTML = '';
     classString = '';
-    const {stdout,stderr} = await execPromise(`node ${path.resolve('./bundle.js')} ${LOCAL_ADDRESS} ${PORT_EXPRESS}`,{encoding:'utf8',shell:'/bin/zsh'})
-    // console.log(stdout);
-    console.error(stderr);
-    const result = stdout.toString().split('_SEPARATOR_');
-    indexHTML = result[0];
-    classString = result[1];
-}
-await bundleComponents();
+    const childProcess = fork(path.resolve('./bundle.js'),
+    [
+        LOCAL_ADDRESS,
+        PORT_EXPRESS,
+        ACTIVE_PATH,
+        ACTIVE_QUERY,
+        ACTIVE_TITLE,
+        JSON.stringify(STATE_REPLACEMENTS)
+    ]);
+    childProcess.on('message',(msg)=>{
+        resultString += msg;
+    })
+    childProcess.send()
+    await childProcess.once('close',()=>{       
+        indexHTML = resultString.split('_SEPARATOR_')[0];
+        classString = resultString.split('_SEPARATOR_')[1];
+    })
 
+
+}
 
 
 /*========== EXPRESS SETTINGS ==========*/
@@ -73,22 +126,46 @@ express.get('/',(req,res)=>{
     res.setHeader('Upgrade','websocket');
     res.setHeader('Connection','Upgrade');
     // DEV_ENV
-    res.redirect('/techblog')
+    res.redirect('/about')
 });
 // send dehydrated index.js
-express.get('/techblog',async (req,res)=>{
+express.get('/about',async (req,res)=>{
+    // bundle.js
+    await bundleComponents('/about', '', 'About');
     res.send(indexHTML)
 });
-express.get('/about',async (req,res)=>{
+express.get('/techblog',async (req,res)=>{
+
+    await bundleComponents(
+        '/techblog', 
+        '?asdf=asdf', 
+        'Techblog', 
+        {
+            "_FEATURED_CARD_CONTENTS_"
+            :
+            articleCards.filter((card)=>{
+                if(card.featured===true){
+                    return card
+                }
+            })
+        }
+    );
     res.send(indexHTML)
 });
 express.get('/portfolio',async (req,res)=>{
+    await bundleComponents('/portfolio', '', 'Portfolio');
     res.send(indexHTML)
 });
 express.get('/shop',async (req,res)=>{
+    await bundleComponents('/shop', '', 'Shop');
     res.send(indexHTML)
 });
 express.get('/search',async (req,res)=>{
+    await bundleComponents('/search', '', 'Search');
+    res.send(indexHTML)
+});
+express.get('/article',async (req,res)=>{
+    await bundleComponents('/article', '', 'Article');
     res.send(indexHTML)
 });
 // send bundled App.js
@@ -103,88 +180,111 @@ express.listen(PORT_EXPRESS,()=>{console.log('[myblog:ssr]',PORT_EXPRESS);})
 
 /*========== API ==========*/
 // article
+
 express.get('/articleAPI',(req,res)=>{
-    res.setHeader('Content-Type','application/json')
-    res.send(JSON.stringify(
-    {
-        card_data : [
-            {
-                title: 't1',
-                date: 'd1',
-                tags: ['t1a','t1b']
-            },
-            {
-                title: 't2',
-                date: 'd2',
-                tags: ['t2a','t2b']
-            },
-            {
-                title: 't3',
-                date: 'd3',
-                tags: ['t3a','t3b']
-            },
-            {
-                title: 't4',
-                date: 'd4',
-                tags: ['t4a','t4b']
-            },
-            {
-                title: 't5',
-                date: 'd5',
-                tags: ['t5a','t5b']
-            },
-            {
-                title: 't6',
-                date: 'd6',
-                tags: ['t6a','t6b']
-            }
-        ]
-    }))
-})
-express.get('/searchAPI',(req,res)=>{
-    // query: String 검색어 (20자이하)
-    // tags: Array<String> 태그 
-    // 
-    console.log(req.query.keyword);
-    res.setHeader('Content-Type','application/json')
-    res.send(JSON.stringify(
-    {
-        card_data : [
-            {
-                title: 't1',
-                date: 'd1',
-                tags: ['t1a','t1b']
-            },
-            {
-                title: 't2',
-                date: 'd2',
-                tags: ['t2a','t2b']
-            },
-            {
-                title: 't3',
-                date: 'd3',
-                tags: ['t3a','t3b']
-            },
-            {
-                title: 't4',
-                date: 'd4',
-                tags: ['t4a','t4b']
-            },
-            {
-                title: 't5',
-                date: 'd5',
-                tags: ['t5a','t5b']
-            },
-            {
-                title: 't6',
-                date: 'd6',
-                tags: ['t6a','t6b']
-            }
-        ]
-    }))
+    console.log('featured: '+req.query.featured);
+    console.log('tag: '+req.query.tag);
+    console.log('keyword: '+req.query.keyword);
+    res.setHeader('Content-Type','application/json');
+    if(req.query.featured==='true'){
+        res.send(JSON.stringify(
+        {
+            card_data : articleCards.filter((card)=>{
+                if(card.featured===true) return card
+            })
+        }));
+    }
+    if(req.query.featured==='false'||!req.query.featured){
+        res.send(JSON.stringify(
+        {
+            card_data : articleCards
+        }));
+    }
 });
 
+// portfolio
+const portfolioCards = [
+    {
+        id:'19kw39d2',
+        featured: true,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'19kw39d2',
+        featured: true,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'19kw39d2',
+        featured: false,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'19kw39d2',
+        featured: false,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'19kw39d2',
+        featured: false,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+    {
+        id:'19kw39d2',
+        featured: false,
+        thumbnail: 'd22jed89',
+        title: 'CODIO',
+        description: 'portfolioCards',
+        date: '2019',
+        tags: ['t1a221343','t1b2021.03.26','t1b2021.03.26','t2bs']
+    },
+]
+express.get('/portfolioAPI',(req,res)=>{
+    console.log('featured: '+req.query.featured);
+    console.log('tag: '+req.query.tag);
+    console.log('keyword: '+req.query.keyword);
+    if(req.query.featured==='true'){
+        res.send(JSON.stringify(
+        {
+            card_data : portfolioCards.filter((card)=>{
+                if(card.featured===true) return card
+            })
+        }));
+    }
+    if(req.query.featured==='false'||!req.query.featured){
+        res.send(JSON.stringify(
+        {
+            card_data : portfolioCards
+        }));
+    }
+});
+    
 
+express.get('/shopAPI',(req,res)=>{
+    console.log('best: '+req.query.best);
+    console.log('tag: '+req.query.tag);
+    console.log('keyword: '+req.query.keyword);
+});
 
 
 
@@ -240,21 +340,19 @@ wss.on('connection', async (ws)=>{
     });
 }); 
 
-// make directory watcher (on components/*)
+// watcher (on components/*)
 const watcher = chokidar.watch(WATCH_PATH,{
     atomic: true
 });
 
 // websocket client : sends reload message on watch events
 const ws = new WebSocket('http://localhost:'+PORT_WEBSOCKET)
+
+// on watcher event
 watcher.on('change', async (ev)=>{
-    // process.exit();
-    // re-render components !! memory leaking !!
-    await bundleComponents(COMPONENT_PATH);
-    // memory check & reload script process itself on threshold (25mb)
+    // memory check
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     console.log(`memory usage : ${Math.round(used * 100) / 100} MB`);
-    if(used>25) process.exit();
     // reload signal
     ws.send('reload');
 })

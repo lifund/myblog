@@ -5,24 +5,35 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>Document</title>
+    <title>_ACTIVE_TITLE_</title>
     <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
 	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <!-- <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script></head> -->
+    <!--
+        <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script></head>
+     -->
     <!--STYLESHEET-->
+</head>
 <body class="preload">
     <div id="root"></div>
+    <script>
+        // IE no-support
+        if (window.document.documentMode) {
+            document.getElementById('root').innerHTML = 
+            '<h2>We don\'t support Internet Explorer.<br>인터넷 익스플로러는 지원하지 않습니다. </h2>'
+            +'<br><span>This website\'s address is following. | 이 웹사이트의 주소는 다음과 같습니다. </span><input value="_LOCAL_ADDRESS_:_LOCAL_PORT_">'
+            +'<br><br><a target="_blank" href="https://google.com/chrome"> Download Chrome | 크롬 다운로드하기 </a>'
+        }
+    </script>
     <script type="module">
         // import App
-        import App from "http://$LOCAL_ADDRESS$:$LOCAL_PORT$/app";
+        import App from "http://_LOCAL_ADDRESS_:_LOCAL_PORT_/app";
         // hydrate markup
         ReactDOM.hydrate(
             React.createElement(App),
             document.getElementById('root')
         );
-
     </script>
 </body>
 </html> 
