@@ -5,11 +5,12 @@
   "description": "",
   "main": "index.js",
   "config": {
-    "port": "8080"
+    "dev_port_express": "8000",
+    "dev_port_websocket": "8001"
   },
   "scripts": {
-    "dev": "node ./scripts/build.js",
-    "build": "node ./scripts/dev.js",
+    "dev": "node ./scripts/dev.js",
+    "build": "node ./scripts/build.js",
     "production": "node ./scripts/production.js"
   },
   "keywords": [
@@ -20,6 +21,7 @@
   "author": "Jangwon Suh",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "ws": "^7.4.4"
   }
 }
